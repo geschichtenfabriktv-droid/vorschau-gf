@@ -81,13 +81,12 @@
     }
     // Kamera-Einstellungen: ND, Blende, ISO, Verschluss (nie langsamer als 1/50) und Tonpegel
     var pop=$('.vf-pop',vf); if(!pop)return;
-    var img=$('.vf-img',vf), aud=$('.vf-aud',vf), mm=$('.vf-mm',vf), rng=$('.vf-rng',pop), pl=$('.vf-pop-l',pop), pv=$('.vf-pop-v',pop), cur=null;
+    var mix, mixOpen=function(){}, img=$('.vf-img',vf), aud=$('.vf-aud',vf), mm=$('.vf-mm',vf), rng=$('.vf-rng',pop), pl=$('.vf-pop-l',pop), pv=$('.vf-pop-v',pop), cur=null;
     var C={
       nd:{l:'ND-FILTER',v:['CLEAR','1/4','1/8','1/16','1/32','1/64','1/128'],st:[0,2,3,4,5,6,7],i:3,f:function(v){return 'ND '+v}},
       iris:{l:'BLENDE',v:['F1.4','F2','F2.8','F4','F5.6','F8','F11','F16'],i:2,f:function(v){return v}},
       iso:{l:'ISO',v:[100,200,400,800,1600,3200,6400,12800,25600],i:3,f:function(v){return 'ISO '+v}},
-      shutter:{l:'VERSCHLUSS',v:[50,60,100,125,200,250,500,1000,2000],i:0,f:function(v){return '1/'+v}},
-      audio:{l:'TONPEGEL',min:-40,max:12,step:3,i:0,f:function(v){return v<=-40?'−∞ dB':(v>0?'+':v<0?'−':'±')+Math.abs(v)+' dB'}}
+      shutter:{l:'VERSCHLUSS',v:[50,60,100,125,200,250,500,1000,2000],i:0,f:function(v){return '1/'+v}}
     };
     var val=function(k){var c=C[k];return c.v?c.v[c.i]:c.i};
     var apply=function(){
@@ -98,7 +97,6 @@
       var r=Math.round(ev*10)/10;
       mm.textContent='M.M '+(r>0?'+':r<0?'−':'±')+Math.abs(r).toFixed(1);
       mm.className='vf-mm'+(Math.abs(r)>=2?' over':Math.abs(r)>=1?' warn':'');
-      var a=C.audio.i,g=a<=-40?0:Math.min(2.2,Math.pow(10,a/20));aud.style.setProperty('--g',g.toFixed(3));aud.style.setProperty('--gs',(g>0?100/g:100).toFixed(1)+'%');
       ['nd','iris','iso','shutter'].forEach(function(k){var b=$('[data-v="'+k+'"]',vf);if(b)b.textContent=C[k].f(val(k))});
       if(cur){pv.textContent=C[cur].f(val(cur));rng.value=C[cur].i}
     };
@@ -111,7 +109,7 @@
       $$('[data-ctl]',vf).forEach(function(b){b.setAttribute('aria-expanded',b.getAttribute('data-ctl')===k?'true':'false')});
       apply();
     };
-    $$('[data-ctl]',vf).forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();open(b.getAttribute('data-ctl'))})});
+    $$('[data-ctl]',vf).forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();if(mix&&!mix.hidden)mixOpen(false);open(b.getAttribute('data-ctl'))})});
     rng.addEventListener('input',function(){C[cur].i=+rng.value;apply()});
     $$('.vf-step',pop).forEach(function(b){b.addEventListener('click',function(e){
       e.stopPropagation();var c=C[cur],dd=+b.getAttribute('data-step')*(c.step||1);
@@ -122,6 +120,47 @@
     d.addEventListener('click',function(){if(cur)close()});
     d.addEventListener('keydown',function(e){if(e.key==='Escape'&&cur)close()});
     apply();
+    // ---------- Mini-Mischpult: vier Kanäle mit Fadern, Pegeln und Stummschaltung ----------
+    mix=$('.mix',vf); var vfM=$$('.vf-aud i b',vf);
+    if(mix){
+      var strips=$$('.strip',mix), CH=[{b:.62},{b:.55},{b:.48},{b:.34}];
+      // Fader-Weg (0 unten … 1 oben) in dB: 0 = −∞, .25 = −20, .5 = −10, .75 = 0, 1 = +12
+      var P2DB=[[0,-60],[.25,-20],[.5,-10],[.75,0],[1,12]];
+      var toDb=function(p){if(p<=.01)return -Infinity;for(var k=1;k<P2DB.length;k++){if(p<=P2DB[k][0]){var a=P2DB[k-1],b=P2DB[k];return a[1]+(b[1]-a[1])*(p-a[0])/(b[0]-a[0])}}return 12};
+      var fmtDb=function(v){if(v===-Infinity)return '−∞';var r=Math.round(v);return (r>0?'+':r<0?'−':'±')+Math.abs(r)};
+      CH.forEach(function(c,k){
+        var st=strips[k], fd=$('.fader',st), cap=$('.fader-cap',st), db=$('.strip-db',st), mu=$('.mute',st);
+        c.p=.75;c.mute=false;c.lv=c.b;c.tg=c.b;c.mtr=$('.mtr b',st);
+        var set=function(p){c.p=Math.min(1,Math.max(0,p));cap.style.setProperty('--t',(1-c.p).toFixed(3));var v=toDb(c.p);c.g=v===-Infinity?0:Math.pow(10,v/20);db.textContent=fmtDb(v)+' dB';fd.setAttribute('aria-valuenow',v===-Infinity?-60:Math.round(v));fd.setAttribute('aria-valuetext',fmtDb(v)+' dB')};
+        var fromY=function(e){var r=fd.getBoundingClientRect();set(1-(e.clientY-r.top)/r.height)};
+        fd.addEventListener('pointerdown',function(e){e.preventDefault();e.stopPropagation();try{fd.setPointerCapture(e.pointerId)}catch(x){}fd._drag=1;fromY(e)});
+        fd.addEventListener('pointermove',function(e){if(fd._drag)fromY(e)});
+        ['pointerup','pointercancel'].forEach(function(t){fd.addEventListener(t,function(){fd._drag=0})});
+        fd.addEventListener('keydown',function(e){var s={ArrowUp:.02,ArrowRight:.02,ArrowDown:-.02,ArrowLeft:-.02,PageUp:.1,PageDown:-.1}[e.key];if(s){e.preventDefault();set(c.p+s)}});
+        mu.addEventListener('click',function(e){e.stopPropagation();c.mute=!c.mute;mu.setAttribute('aria-pressed',c.mute?'true':'false');st.classList.toggle('muted',c.mute)});
+        set(.75);
+      });
+      // Pegel per Skript (funktioniert in allen Browsern gleich)
+      var lt=0;
+      var meter=function(now){
+        if(now-lt>110){lt=now;CH.forEach(function(c){c.tg=c.b*(.45+Math.random()*.75)})}
+        CH.forEach(function(c,k){
+          c.lv+=(c.tg-c.lv)*.25;
+          var l=c.mute?0:Math.min(1,c.lv*c.g), h=((1-l)*100).toFixed(1)+'%';
+          c.mtr.style.height=h; if(vfM[k])vfM[k].style.height=h;
+          strips[k].classList.toggle('clip',l>.97);
+        });
+        if(!R)requestAnimationFrame(meter);
+      };
+      requestAnimationFrame(meter);
+      mixOpen=function(o){mix.hidden=!o;aud.setAttribute('aria-expanded',o?'true':'false');if(o){close();var f=$('.fader',mix);if(f)f.focus({preventScroll:true})}};
+      aud.addEventListener('click',function(e){e.stopPropagation();mixOpen(mix.hidden)});
+      $('.mix-x',mix).addEventListener('click',function(e){e.stopPropagation();mixOpen(false)});
+      mix.addEventListener('click',function(e){e.stopPropagation()});
+      mix.addEventListener('pointerdown',function(e){e.stopPropagation()});
+      d.addEventListener('click',function(){if(!mix.hidden)mixOpen(false)});
+      d.addEventListener('keydown',function(e){if(e.key==='Escape'&&!mix.hidden)mixOpen(false)});
+    }
   });
 
   // ---------- Zahlen zählen hoch ----------
