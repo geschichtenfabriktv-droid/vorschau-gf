@@ -33,6 +33,7 @@
     <a class="nav-cta" href="#kontakt">Kontakt</a>
   </nav>
   <p class="clock" aria-hidden="true"><span>LIVE</span><b data-clock>00:00:00</b></p>
+  <a class="m-cta" href="#kontakt"><i class="rec" aria-hidden="true"></i>Kontakt</a>
   <button class="menu-btn" type="button" aria-expanded="false" aria-controls="mnav"><span class="sr">Menü</span><i></i><i></i></button>
 </header>
 <nav class="mnav" id="mnav" aria-label="Menü" hidden>
@@ -46,32 +47,36 @@
 <section class="hero">
   <div class="hero-h">
    <div class="hero-txt">
-    <h1><span class="ln"><span>TV- &amp;</span></span> <span class="ln"><span>Streaming-<wbr>Produktionen</span></span></h1>
+    <h1 aria-label="TV- und Streaming-Produktionen"><span class="ln"><span>TV-&nbsp;&amp;&nbsp;Streaming-</span></span><span class="ln"><span>Produktionen</span></span></h1>
     <div class="hero-side">
       <p class="claim">Hochwertige Inhalte.<br>Maximale Budgeteffizienz.</p>
       <a class="btn" href="#produktionen">Produktionen ansehen <svg class="arr" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></a>
     </div>
    </div>
+  <div class="hero-vf">
   <div class="vf vf-hero" data-vf>
     
-    <div class="vf-bar vf-top" aria-hidden="true">
-      <span class="vf-st"><i></i><b class="vf-mode">STBY</b></span>
-      <span>TC <b data-vftc>10:00:00:00</b></span>
-      <span class="hide-s">UHD 25p · XAVC-I</span>
-      <span class="vf-media hide-s"><em>A</em> 118min <em>B</em> 064min</span>
-      <span class="vf-batt"><i></i>15.4V</span>
+    <div class="vf-bar vf-top">
+      <span class="vf-st" aria-hidden="true"><i></i><b class="vf-mode">STBY</b></span>
+      <button type="button" class="vf-ctl vf-tcbtn" aria-label="Timecode umschalten zwischen Uhrzeit und Aufnahme"><span class="vf-tcm">TC</span> <b data-vftc>00:00:00:00</b></button>
+      <span class="hide-s" aria-hidden="true">UHD 25p · XAVC-I</span>
+      <span class="vf-media hide-s" aria-hidden="true"><em>A</em> 118min <em>B</em> 064min</span>
+      <span class="vf-batt" aria-hidden="true"><i></i>15.4V</span>
     </div>
     <div class="vf-scr">
       <img class="vf-img" src="img/hero-1400.webp" srcset="img/hero-800.webp 800w, img/hero-1400.webp 1400w, img/hero-2070.webp 2070w" sizes="(min-width: 1000px) 640px, 94vw" width="2070" height="1164" alt="Moderatorin bei einem Dreh im Wald, Blick in die Kamera" fetchpriority="high" decoding="async">
       <span class="vf-safe" aria-hidden="true"></span>
       <span class="vf-cross" aria-hidden="true"></span>
       <span class="vf-af" aria-hidden="true"></span>
-      
-      <div class="vf-aud" aria-hidden="true"><span><i style="--d:0.13s"></i><small>1</small></span><span><i style="--d:0.26s"></i><small>2</small></span><span><i style="--d:0.39s"></i><small>3</small></span><span><i style="--d:0.52s"></i><small>4</small></span></div>
+      <span class="vf-grain" aria-hidden="true"></span>
+      <button type="button" class="vf-aud vf-ctl" data-ctl="audio" aria-label="Tonpegel einstellen" aria-expanded="false"><span><i style="--d:0.13s"></i><small>1</small></span><span><i style="--d:0.26s"></i><small>2</small></span><span><i style="--d:0.39s"></i><small>3</small></span><span><i style="--d:0.52s"></i><small>4</small></span></button>
+      <div class="vf-pop" hidden><span class="vf-pop-l"></span><div class="vf-pop-r"><button type="button" class="vf-step" data-step="-1" aria-label="Weniger">−</button><input type="range" class="vf-rng" aria-label="Wert"><button type="button" class="vf-step" data-step="1" aria-label="Mehr">+</button></div><b class="vf-pop-v"></b><button type="button" class="vf-pop-x">OK</button></div>
       <button class="vf-recbtn" type="button" aria-pressed="false"><i></i><span>REC</span></button>
     </div>
     
-    <div class="vf-bar vf-bot" aria-hidden="true"><span>ND 1/16</span><span>F2.8</span><span>ISO 800</span><span>1/50</span><span class="hide-s">5600K</span><span class="hide-s">S-Cinetone</span><span class="hide-s">FF 6K</span></div>
+    <div class="vf-bar vf-bot"><button type="button" class="vf-ctl" data-ctl="nd" aria-label="ND-Filter einstellen" aria-expanded="false"><b data-v="nd">ND 1/16</b></button><button type="button" class="vf-ctl" data-ctl="iris" aria-label="Blende einstellen" aria-expanded="false"><b data-v="iris">F2.8</b></button><button type="button" class="vf-ctl" data-ctl="iso" aria-label="ISO einstellen" aria-expanded="false"><b data-v="iso">ISO 800</b></button><button type="button" class="vf-ctl" data-ctl="shutter" aria-label="Verschlusszeit einstellen" aria-expanded="false"><b data-v="shutter">1/50</b></button><span class="hide-s" aria-hidden="true">5600K</span><span class="hide-s" aria-hidden="true">S-Cinetone</span><span class="vf-mm" aria-live="polite">M.M ±0.0</span></div>
+  </div>
+  <p class="vf-hint">Tipp: Timecode, ND, Blende, ISO, Verschluss und Tonpegel im Sucher antippen.</p>
   </div>
   </div>
   <ul class="facts-row">
@@ -87,7 +92,16 @@
   <div class="cols">
     <div data-r><p class="lead">Erfahrung aus über 50 Auftragsproduktionen.</p><p>Gegründet von Marvin Kreuz, steht die GESCHICHTENFABRIK.TV für operative Exzellenz im deutschen TV-Markt.</p><p>Wir agieren wahlweise als Hauptproduzent für autarke Projekte oder als spezialisierter Sub-Produzent zur Entlastung großer Produktionshäuser.</p></div>
     <div data-r style="--i:1"><h3>Vertrauen der Marktführer</h3><p>Unsere Produktionen erreichen ein Millionenpublikum und überzeugen durch überdurchschnittliche Marktanteile. Wir arbeiten regelmäßig für und mit:</p>
-      <ul class="legend"><li><span class="sw g-rtl"></span><b>RTL Group</b><span>RTL · RTL2 · VOX · ntv</span></li><li><span class="sw g-p7"></span><b>ProSiebenSat.1</b><span>ProSieben · SAT.1</span></li></ul>
+      <div class="chan">
+        <div class="chan-g g-rtl">
+          <p class="chan-h"><b>RTL Group</b><span>4 Sender</span></p>
+          <ul><li><button type="button" class="chan-t" data-goto="RTL" aria-label="RTL: 12 Beiträge in der Liste anzeigen"><span class="chan-n">CH 01</span><b>RTL</b><small>12 Beiträge</small><i class="chan-on" aria-hidden="true">ON AIR</i></button></li><li><button type="button" class="chan-t" data-goto="RTL2" aria-label="RTL2: 4 Beiträge in der Liste anzeigen"><span class="chan-n">CH 02</span><b>RTL2</b><small>4 Beiträge</small><i class="chan-on" aria-hidden="true">ON AIR</i></button></li><li><button type="button" class="chan-t" data-goto="VOX" aria-label="VOX: 2 Beiträge in der Liste anzeigen"><span class="chan-n">CH 03</span><b>VOX</b><small>2 Beiträge</small><i class="chan-on" aria-hidden="true">ON AIR</i></button></li><li><button type="button" class="chan-t" data-goto="ntv" aria-label="ntv: 3 Beiträge in der Liste anzeigen"><span class="chan-n">CH 04</span><b>ntv</b><small>3 Beiträge</small><i class="chan-on" aria-hidden="true">ON AIR</i></button></li></ul>
+        </div>
+        <div class="chan-g g-p7">
+          <p class="chan-h"><b>ProSiebenSat.1</b><span>2 Sender</span></p>
+          <ul><li><button type="button" class="chan-t" data-goto="ProSieben" aria-label="ProSieben: 9 Beiträge in der Liste anzeigen"><span class="chan-n">CH 05</span><b>ProSieben</b><small>9 Beiträge</small><i class="chan-on" aria-hidden="true">ON AIR</i></button></li><li><button type="button" class="chan-t" data-goto="SAT.1" aria-label="SAT.1: 5 Beiträge in der Liste anzeigen"><span class="chan-n">CH 06</span><b>SAT.1</b><small>5 Beiträge</small><i class="chan-on" aria-hidden="true">ON AIR</i></button></li></ul>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -437,7 +451,7 @@
       </div>
       <div class="g-info">
         <h3 id="gt-stau">V-Klasse Hover: Stau in Köln</h3>
-        <p>Der Dreh beginnt in 20 Minuten, die Zoobrücke steht. Zum Glück hat unser Produktionsbus Schubdüsen.</p>
+        <p>Jede Fahrt ein anderer Drehort in Köln, der Stau steht. Zum Glück hat unser Produktionsbus Schubdüsen.</p>
         <p class="g-best">Bestwert: <b>–</b></p>
       </div>
     </article><article class="game" id="spiel-klappe" data-game="klappe" aria-labelledby="gt-klappe">
@@ -453,7 +467,7 @@
       </div>
       <div class="g-info">
         <h3 id="gt-klappe">Klappe! Ton anlegen</h3>
-        <p>Im Schnitt muss der Klappenschlag auf das Bild. Fünf Takes, jeder Frame daneben zählt.</p>
+        <p>Im Schnitt muss der Klappenschlag auf das Bild. Wechselnde Drehtage mit Störgeräuschen und leisen Klappen. Fünf Takes, jeder Frame zählt.</p>
         <p class="g-best">Bestwert: <b>–</b></p>
       </div>
     </article><article class="game" id="spiel-fokus" data-game="fokus" aria-labelledby="gt-fokus">
@@ -462,14 +476,14 @@
         <img class="g-photo" src="img/aab2b6cd48.webp" alt="" width="2090" height="1176" loading="lazy"><div class="g-ring" aria-hidden="true"></div>
         <div class="g-ov">
           <p class="g-kick">Spiel 3 von 4</p>
-          <p class="g-msg">Maus, Finger oder Pfeiltasten bewegen das Schärferad. Halten Sie die Marke auf der Entfernung der Person.</p>
+          <p class="g-msg">Maus, Finger oder Pfeiltasten bewegen das Schärferad. Halten Sie die Marke auf der gelben Entfernung der Person.</p>
           <button type="button" class="g-start"><svg class="pl" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg> Start</button>
         </div>
         <p class="g-hud" aria-live="polite"></p>
       </div>
       <div class="g-info">
         <h3 id="gt-fokus">Schärfe ziehen</h3>
-        <p>Der Protagonist bewegt sich, Sie sind der Focus Puller. 20 Sekunden, wie viel davon ist scharf?</p>
+        <p>Jede Runde ein anderes Motiv und eine andere Bewegung. Sie sind der Focus Puller: 20 Sekunden, wie viel davon ist scharf?</p>
         <p class="g-best">Bestwert: <b>–</b></p>
       </div>
     </article><article class="game" id="spiel-regie" data-game="regie" aria-labelledby="gt-regie">
@@ -478,14 +492,14 @@
         <div class="g-cams"><button type="button" class="g-cam" data-cam="1" tabindex="-1"><img src="img/e10302302c-m.webp" alt="" width="1280" height="720" loading="lazy"><b>CAM 1</b></button><button type="button" class="g-cam" data-cam="2" tabindex="-1"><img src="img/75d48f68ac-m.webp" alt="" width="1280" height="720" loading="lazy"><b>CAM 2</b></button><button type="button" class="g-cam" data-cam="3" tabindex="-1"><img src="img/d5132a003d-m.webp" alt="" width="1280" height="720" loading="lazy"><b>CAM 3</b></button><button type="button" class="g-cam" data-cam="4" tabindex="-1"><img src="img/461696c92a-m.webp" alt="" width="1280" height="720" loading="lazy"><b>CAM 4</b></button></div>
         <div class="g-ov">
           <p class="g-kick">Spiel 4 von 4</p>
-          <p class="g-msg">Kamera 1 bis 4 antippen oder die Tasten 1 bis 4 drücken, sobald die Regie sie ruft.</p>
+          <p class="g-msg">Gelb heißt Achtung, grün heißt Schnitt: Erst beim zweiten Kommando die Kamera antippen (oder Taste 1 bis 4).</p>
           <button type="button" class="g-start"><svg class="pl" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg> Start</button>
         </div>
         <p class="g-hud" aria-live="polite"></p>
       </div>
       <div class="g-info">
         <h3 id="gt-regie">Live-Regie</h3>
-        <p>Die Regie ruft die Kamera, Sie schneiden live. 20 Kommandos, so schnell wie möglich.</p>
+        <p>Wie im Ü-Wagen: Die Regie sagt die Kamera an („Achtung 3 …“) und gibt sie frei („… und 3!“). Erst dann schneiden. Jede Sendung mit anderen Bildern.</p>
         <p class="g-best">Bestwert: <b>–</b></p>
       </div>
     </article>
