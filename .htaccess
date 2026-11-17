@@ -1,0 +1,64 @@
+# GESCHICHTENFABRIK.TV – Servereinstellungen für one.com (Apache)
+
+# 1) Jede Antwort trägt den Hinweis "nicht indexieren" (gilt auch für Bilder und PDFs)
+<IfModule mod_headers.c>
+  Header always set X-Robots-Tag "noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate, noai, noimageai"
+  Header always set Referrer-Policy "no-referrer"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+</IfModule>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # 2) Suchmaschinen, KI-Crawler und SEO-Scanner bekommen keine Inhalte (403).
+  #    robots.txt bleibt lesbar, damit sich brave Bots direkt abmelden.
+  RewriteCond %{REQUEST_URI} !^/robots\.txt$
+  RewriteCond %{HTTP_USER_AGENT} (googlebot|google-extended|googleother|google-inspectiontool|storebot-google|adsbot|mediapartners|bingbot|bingpreview|msnbot|slurp|duckduckbot|duckassistbot|baiduspider|yandex|sogou|exabot|seznambot|qwantbot|mojeekbot|petalbot|applebot|ia_archiver|archive\.org_bot|gptbot|chatgpt-user|oai-searchbot|claudebot|claude-web|claude-user|claude-searchbot|anthropic-ai|perplexitybot|perplexity-user|ccbot|bytespider|tiktokspider|amazonbot|cohere-ai|cohere-training-data-crawler|diffbot|omgili|omgilibot|youbot|ai2bot|imagesiftbot|meta-externalagent|meta-externalfetcher|facebookbot|mistralai-user|timpibot|kangaroo\ bot|webzio-extended|pangubot|img2dataset|friendlycrawler|iaskspider|semrushbot|ahrefsbot|mj12bot|dotbot|dataforseobot|blexbot|serpstatbot|scrapy|neevabot|brightbot|crawlspace|firecrawlagent|deepseekbot|grokbot|xai-crawler) [NC]
+  RewriteRule ^ - [F,L]
+
+  # 3) Alte Squarespace-Adressen leiten auf die neuen Seiten um
+  RewriteRule ^home/?$ / [R=301,L]
+  RewriteRule ^vox-am-wallbox/?$ /vox-auto-mobil-leben-ohne-wallbox [R=301,L]
+  RewriteRule ^sat1ffdsekeldrinks/?$ /sat1-fruehstuecksfernsehen-ekel-drinks-mallorca [R=301,L]
+  RewriteRule ^ntvpsautofruejahrscheck-2/?$ /ntv-ps-automagazin-auto-apps [R=301,L]
+  RewriteRule ^rtlcosimoschwimmen/?$ /rtl-punkt12-cosimo-lernt-schwimmen [R=301,L]
+  RewriteRule ^rtl2gripgvma/?$ /rtl2-grip-geld-verdienen-mit-dem-auto [R=301,L]
+  RewriteRule ^rtl2gripmicrocars-1/?$ /rtl2-grip-andreas-sucht-kastenwagen [R=301,L]
+  RewriteRule ^ntvpsautofruejahrscheck/?$ /ntv-ps-automagazin-auto-fruehjahrscheck [R=301,L]
+  RewriteRule ^sat1-ffs-penthouseballermann/?$ /sat1-fruehstuecksfernsehen-penthouse-ballermann [R=301,L]
+  RewriteRule ^rtl2gripgvma-1/?$ /rtl2-grip-top-5-oldie-offroader [R=301,L]
+  RewriteRule ^vox-e-pannen/?$ /vox-auto-mobil-e-auto-pannendienst [R=301,L]
+  RewriteRule ^rtl2gripmicrocars/?$ /rtl2-grip-microcars-zielgruppentest [R=301,L]
+  RewriteRule ^ntvpsautofruejahrscheck-1/?$ /zdf-hallo-deutschland-notaerztin-mallorca [R=301,L]
+  RewriteRule ^sat1ffdsekeldrinks-1/?$ /sat1-fruehstuecksfernsehen-goldwaschen [R=301,L]
+  RewriteRule ^sat1lebensretterhautnah/?$ /sat1-lebensretter-hautnah [R=301,L]
+  RewriteRule ^rtlonlinenannys/?$ /rtl-punkt12-online-nannys [R=301,L]
+  RewriteRule ^taffschlittentets/?$ /prosieben-taff-schlitten-im-test [R=301,L]
+  RewriteRule ^taffelektrischewasserpistolen/?$ /prosieben-taff-elektrische-wasserpistolen [R=301,L]
+
+  # 4) Schöne Adressen ohne ".html"
+  RewriteCond %{THE_REQUEST} \s/+(.+?)\.html[\s?] [NC]
+  RewriteCond %{REQUEST_URI} !^/index\.html$
+  RewriteRule ^ /%1 [R=301,L]
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME}.html -f
+  RewriteRule ^([^/.]+)/?$ $1.html [L]
+</IfModule>
+
+ErrorDocument 404 /404.html
+ErrorDocument 403 "Kein Zugriff."
+Options -Indexes
+
+# 5) Bilder und Schriften lange im Browser behalten
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/webp "access plus 6 months"
+  ExpiresByType font/woff2 "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 6 months"
+  ExpiresByType text/css "access plus 7 days"
+  ExpiresByType application/javascript "access plus 7 days"
+</IfModule>
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript image/svg+xml
+</IfModule>
