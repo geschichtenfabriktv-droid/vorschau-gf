@@ -123,7 +123,7 @@
     // ---------- Mini-Mischpult: vier Kanäle mit Fadern, Pegeln und Stummschaltung ----------
     mix=$('.mix',vf); var vfM=$$('.vf-aud i b',vf);
     if(mix){
-      var strips=$$('.strip',mix), CH=[{b:.62},{b:.55},{b:.48},{b:.34}];
+      var strips=$$('.mxs',mix), CH=[{b:.62},{b:.55},{b:.48},{b:.34}];
       // Fader-Weg (0 unten … 1 oben) in dB: 0 = −∞, .25 = −20, .5 = −10, .75 = 0, 1 = +12
       var P2DB=[[0,-60],[.25,-20],[.5,-10],[.75,0],[1,12]];
       var toDb=function(p){if(p<=.01)return -Infinity;for(var k=1;k<P2DB.length;k++){if(p<=P2DB[k][0]){var a=P2DB[k-1],b=P2DB[k];return a[1]+(b[1]-a[1])*(p-a[0])/(b[0]-a[0])}}return 12};
@@ -340,6 +340,28 @@
     }
   }
 
+  // ---------- Behind the Scenes: Galerie zum Wischen + Großansicht ----------
+  var gal=$('.gal');
+  if(gal){
+    var figs=$$('figure',gal), cnt=$('.bts-c b'), lb=$('.lb'), lbi=lb&&$('img',lb), lbc=lb&&$('.lb-c',lb), cur=0, last=null;
+    var idx=function(){var g=gal.getBoundingClientRect(),best=0,bd=1e9;figs.forEach(function(f,i){var dd=Math.abs(f.getBoundingClientRect().left-g.left-parseFloat(getComputedStyle(gal).paddingLeft));if(dd<bd){bd=dd;best=i}});return best};
+    var go=function(i){i=Math.max(0,Math.min(figs.length-1,i));gal.scrollTo({left:figs[i].offsetLeft-figs[0].offsetLeft,behavior:R?'auto':'smooth'})};
+    gal.addEventListener('scroll',function(){if(cnt)cnt.textContent=p2(idx()+1)},{passive:true});
+    $$('[data-bts]').forEach(function(b){b.addEventListener('click',function(){go(idx()+(+b.getAttribute('data-bts')))})});
+    var show=function(i){cur=(i+figs.length)%figs.length;var b=$('.gal-b',figs[cur]);lbi.src=b.getAttribute('data-full');lbi.alt=$('img',b).alt;lbc.textContent=p2(cur+1)+' / '+p2(figs.length)};
+    var open=function(i){last=d.activeElement;show(i);lb.hidden=false;d.documentElement.classList.add('lb-on');$('.lb-x',lb).focus({preventScroll:true})};
+    var close=function(){lb.hidden=true;d.documentElement.classList.remove('lb-on');go(cur);if(last)last.focus({preventScroll:true})};
+    if(lb){
+      figs.forEach(function(f,i){$('.gal-b',f).addEventListener('click',function(){open(i)})});
+      $('.lb-x',lb).addEventListener('click',close);
+      $('.lb-p',lb).addEventListener('click',function(e){e.stopPropagation();show(cur-1)});
+      $('.lb-n',lb).addEventListener('click',function(e){e.stopPropagation();show(cur+1)});
+      lb.addEventListener('click',function(e){if(e.target===lb)close()});
+      d.addEventListener('keydown',function(e){if(lb.hidden)return;if(e.key==='Escape')close();else if(e.key==='ArrowLeft')show(cur-1);else if(e.key==='ArrowRight')show(cur+1)});
+      var sx=null;lb.addEventListener('pointerdown',function(e){sx=e.clientX});lb.addEventListener('pointerup',function(e){if(sx===null)return;var dx=e.clientX-sx;sx=null;if(Math.abs(dx)>45)show(cur+(dx<0?1:-1))});
+    }
+  }
+
   // ---------- Karussell der Minispiele ----------
   var rail=$('.rail');
   if(rail){
@@ -431,102 +453,114 @@
   var rs=0; addEventListener('resize',function(){clearTimeout(rs);rs=setTimeout(function(){all.forEach(function(g){g.size()})},120)});
 
   // =====================================================================
-  // 1) Tonangel: Mikro über die sprechende Person halten, Pegel im grünen Bereich, Angel nicht im Bild
+  // 1) Tonangel: echte Drehszenen. Mikro über die sprechende Person, Windkorb auf sie ausrichten,
+  //    Pegel im grünen Bereich halten und die Angel nicht ins Bild hängen.
   // =====================================================================
   var TON=(function(){
-    var T=25, S, WW, FT=175, t, mx, my, tx, ty, ppl, act, nextSw, lvl, good, inFrame, shout, kx=0, ky=0, mis, lastMis=-1, wind, flash;
-    var LO=-18, HI=-6;
+    var T=25, t, mx, my, tx, ty, th, rot=0, act, nextSw, lvl, good, inFrame, shout, mis, lastMis=-1, wind, flash, offAx, FT, box, IMG={};
+    var LO=-18, HI=-6, RAD=Math.PI/180;
+    // Köpfe in Prozent des Bildes (x, y), gemessen an den Originalbildern
     var MIS=[
-      {n:'Interview im Büro',k:'Zwei Personen, ruhiges Gespräch',p:2,sw:[2.2,3.6],L:[0,-2],walk:0,wind:0,shout:.05},
-      {n:'Streit in der Küche',k:'Drei Personen, schnelle Wechsel, laute Stellen',p:3,sw:[1.1,2.2],L:[1,0,2],walk:0,wind:0,shout:.35},
-      {n:'Walk & Talk im Park',k:'Die Personen gehen beim Reden',p:2,sw:[1.8,3.2],L:[0,-1],walk:1,wind:.2,shout:.08},
-      {n:'Außendreh im Wind',k:'Wind macht den Pegel unruhig',p:2,sw:[1.8,3],L:[1,0],walk:0,wind:1,shout:.1},
-      {n:'Flüsterszene im Krankenhaus',k:'Leise Stimmen, nah ran (aber nicht ins Bild)',p:2,sw:[2,3.4],L:[-9,-10],walk:0,wind:0,shout:0}
+      {img:'84ed29bb99',sy:.06,n:'Gespräch in der Küche',k:'Zwei Personen, ruhiger Dialog',h:[[31,33],[67,37]],L:[0,-2],sw:[2.2,3.6],shout:.05,wind:0},
+      {img:'5990f27b4d',sy:.12,n:'Abendinterview auf der Terrasse',k:'Leise Stimmen, nah ran',h:[[52,33],[73,35]],L:[-6,-7],sw:[2,3.4],shout:0,wind:0},
+      {img:'e10302302c',sy:.0,n:'Car-Talk im Auto',k:'Schnelle Wechsel, lautes Lachen',h:[[27,30],[67,26]],L:[1,0],sw:[1.1,2.1],shout:.35,wind:0},
+      {img:'d5132a003d',sy:.1,n:'Außendreh im Schnee',k:'Vier Personen, Wind im Mikro',h:[[26.5,23],[41,23],[62.5,21],[79,21]],L:[0,-1,1,-1],sw:[1.6,2.8],shout:.1,wind:1},
+      {img:'75d48f68ac',sy:.08,n:'Wasserpistolen-Test im Garten',k:'Drei Personen, laute Stellen',h:[[34,33],[49,40],[73,33]],L:[0,1,0],sw:[1.3,2.4],shout:.3,wind:.3},
+      {img:'a9507e6621',sy:.1,n:'Badewannen-Test mit Familie',k:'Drei Personen, wechselnde Positionen',h:[[28,40],[48,40],[81,40]],L:[0,-3,-1],sw:[1.5,2.8],shout:.15,wind:0}
     ];
-    var COL=['#e0b38c','#c98e6b','#8d5a3b'], SHIRT=['#2b59ff','#ff7a1a','#12b295'];
-    function setScale(G){S=G.H/500;WW=G.W/S}
-    function setup(m){
-      mis=m;ppl=[];var n=m.p;
-      var HAIR=['#2a1d15','#c9a24e','#5a3a22','#151515','#8a5a32'];
-      for(var i=0;i<n;i++){var x=WW*(i+1)/(n+1)+rnd(-30,30);ppl.push({x0:x,x:x,y:268+rnd(-14,10),L:m.L[i]||0,c:COL[Math.floor(Math.random()*3)],sh:SHIRT[i%3],hair:HAIR[Math.floor(Math.random()*HAIR.length)],long:Math.random()<.45,ph:rnd(0,6)})}
-      act=0;nextSw=rnd(m.sw[0],m.sw[1]);mx=tx=WW*.5;my=ty=110;lvl=-30;good=0;inFrame=0;shout=0;wind=0;flash=0;t=0;
+    function load(m){if(!IMG[m.img]){var im=new Image();im.src='img/'+m.img+'-m.webp';IMG[m.img]=im}return IMG[m.img]}
+    function layout(G){
+      FT=Math.round(G.H*.27);var im=IMG[mis.img],iw=1280,ih=720,sh=ih*(1-mis.sy),w=G.W,h=w*sh/iw;
+      if(h<G.H-FT){h=G.H-FT;w=h*iw/sh}
+      box={x:(G.W-w)/2,y:FT,w:w,h:h,sy:mis.sy};
     }
-    function level(){
-      var p=ppl[act],dx=mx-p.x,dy=my-(p.y-34),dd=Math.max(30,Math.sqrt(dx*dx+dy*dy));
-      return p.L+(shout>0?10:0)-20*Math.log(dd/30)/Math.LN10;
+    function head(i){var p=mis.h[i];return {x:box.x+box.w*p[0]/100,y:box.y+box.h*((p[1]/100-box.sy)/(1-box.sy))}}
+    function setup(G,m){mis=m;load(m);layout(G);act=0;nextSw=rnd(m.sw[0],m.sw[1]);var h=head(0);mx=tx=h.x+G.W*.12;my=ty=FT*.55;th=0;rot=0;lvl=-30;good=0;inFrame=0;shout=0;wind=0;flash=0;offAx=0;t=0}
+    function level(G){
+      var h=head(act),dx=h.x-mx,dy=h.y-my,dd=Math.max(G.W*.03,Math.sqrt(dx*dx+dy*dy));
+      // Richtung des Windkorbs gegen Richtung zur Person (Richtmikrofon: seitlich deutlich leiser)
+      var want=Math.atan2(dx,dy),diff=Math.abs(((want-th)/RAD+540)%360-180);offAx=diff;
+      var att=diff<=15?0:diff<=90?-(diff-15)/75*18:-18-(diff-90)/90*8;
+      return mis.L[act]+(shout>0?10:0)+att-20*Math.log(dd/(G.W*.045))/Math.LN10;
     }
     function draw(G){
-      var c=G.c;c.save();c.scale(S,S);
-      // Set: Raum außerhalb des Bildes oben, Bildausschnitt darunter
-      c.fillStyle='#17181c';c.fillRect(0,0,WW,500);
-      var g=c.createLinearGradient(0,FT,0,500);g.addColorStop(0,mis.walk||mis.wind?'#6f8f6a':'#b9a68f');g.addColorStop(1,mis.walk||mis.wind?'#3e5a3c':'#7d6a58');c.fillStyle=g;c.fillRect(0,FT,WW,325);
-      if(!(mis.walk||mis.wind)){c.fillStyle='rgba(0,0,0,.12)';c.fillRect(WW*.62,FT+30,WW*.22,120);c.fillStyle='rgba(255,255,255,.25)';c.fillRect(WW*.64,FT+40,WW*.18,100)}
-      // Bildkante
-      c.strokeStyle='#ff2d20';c.setLineDash([10,7]);c.lineWidth=2;c.beginPath();c.moveTo(0,FT);c.lineTo(WW,FT);c.stroke();c.setLineDash([]);
-      c.fillStyle='#ff6b62';c.font='600 12px Spline Sans Mono,monospace';c.fillText('BILDKANTE',12,FT-8);
-      c.fillStyle='#8b9099';c.textAlign='right';c.fillText('außerhalb des Bildes ↑',WW-80,FT-8);c.textAlign='left';
-      // Personen
-      ppl.forEach(function(p,i){
-        var sp=i===act, bob=sp?Math.sin(t*14)*1.5:0;
-        // Oberkörper mit Schultern, Kragen, Hals
-        c.fillStyle='rgba(0,0,0,.18)';c.beginPath();c.ellipse(p.x+6,p.y+44,58,16,0,0,Math.PI*2);c.fill();
-        c.fillStyle=p.sh;c.beginPath();c.moveTo(p.x-58,500);c.lineTo(p.x-56,p.y+62);c.quadraticCurveTo(p.x-54,p.y+36,p.x-26,p.y+32);c.lineTo(p.x+26,p.y+32);c.quadraticCurveTo(p.x+54,p.y+36,p.x+56,p.y+62);c.lineTo(p.x+58,500);c.closePath();c.fill();
-        c.fillStyle='rgba(255,255,255,.12)';c.beginPath();c.moveTo(p.x-26,p.y+32);c.lineTo(p.x,p.y+60);c.lineTo(p.x+26,p.y+32);c.closePath();c.fill();
-        c.fillStyle=p.c;rr(c,p.x-9,p.y+8,18,30,6);c.fill();
-        c.fillStyle='rgba(0,0,0,.15)';c.fillRect(p.x-9,p.y+26,18,6);
-        // Kopf mit Haaren, Augen und sprechendem Mund
-        var hy=p.y-10+bob;
-        c.fillStyle=p.c;c.beginPath();c.ellipse(p.x,hy,21,26,0,0,Math.PI*2);c.fill();
-        c.fillStyle=p.hair;c.beginPath();c.ellipse(p.x,hy-12,23,17,0,Math.PI,Math.PI*2);c.fill();c.beginPath();c.ellipse(p.x-17,hy-4,6,12,.2,0,Math.PI*2);c.fill();c.beginPath();c.ellipse(p.x+17,hy-4,6,12,-.2,0,Math.PI*2);c.fill();
-        if(p.long){c.beginPath();c.ellipse(p.x-19,hy+14,7,20,.15,0,Math.PI*2);c.fill();c.beginPath();c.ellipse(p.x+19,hy+14,7,20,-.15,0,Math.PI*2);c.fill()}
-        c.fillStyle='#1b1c1f';var ex=(i<act?3:i>act?-3:0);c.beginPath();c.arc(p.x-7+ex,hy-2,2.2,0,Math.PI*2);c.arc(p.x+7+ex,hy-2,2.2,0,Math.PI*2);c.fill();
-        c.fillStyle='rgba(60,20,20,.75)';c.beginPath();c.ellipse(p.x+ex*.6,hy+12,sp?6:5,sp?(2+Math.abs(Math.sin(t*16))*4):1.3,0,0,Math.PI*2);c.fill();
-        if(sp){c.strokeStyle=shout>0?'#ff2d20':'rgba(255,255,255,.85)';c.lineWidth=shout>0?3:2;for(var k=1;k<=3;k++){var r=22+k*9+((t*40)%9);c.globalAlpha=1-k*.28;c.beginPath();c.arc(p.x+(i%2?-1:1)*10,p.y-8,r,(i%2?Math.PI*.8:-.4),(i%2?Math.PI*1.25:.35));c.stroke()}c.globalAlpha=1;
-          if(shout>0){c.fillStyle='#ff2d20';c.font='800 30px Instrument Sans,Arial';c.fillText('!',p.x+30,p.y-40)}}
-      });
-      // Angel und Mikro (mit Windschutz)
-      var ox=WW+40,oy=-20;c.strokeStyle='#2c2d31';c.lineWidth=6;c.beginPath();c.moveTo(ox,oy);c.lineTo(mx+18,my-4);c.stroke();
-      c.strokeStyle='#5a5d64';c.lineWidth=2;c.beginPath();c.moveTo(ox,oy);c.lineTo(mx+18,my-4);c.stroke();
-      c.save();c.translate(mx,my);c.rotate(-.12);
-      c.fillStyle=my>FT-8?'#ff2d20':'#8e9097';
-      for(var f=0;f<26;f++){var a=f/26*Math.PI*2;c.fillRect(Math.cos(a)*22-2,Math.sin(a)*8-2,4,4)}
-      rr(c,-24,-9,48,18,9);c.fill();c.fillStyle='#1b1c1f';c.fillRect(22,-3,12,6);c.restore();
-      if(flash>0){c.fillStyle='rgba(255,45,32,'+(flash*.35)+')';c.fillRect(0,0,WW,500)}
-      // Pegelanzeige
-      var mxp=WW-46,my0=60,mh=360,q=function(db){return my0+mh*(1-(Math.max(-40,Math.min(0,db))+40)/40)};
-      c.fillStyle='rgba(0,0,0,.65)';rr(c,mxp-12,my0-30,52,mh+56,6);c.fill();
-      c.fillStyle='#1d3a2a';c.fillRect(mxp,q(HI),26,q(LO)-q(HI));
-      var lc=lvl>HI?'#ff2d20':lvl>=LO?'#3ddc84':'#6b7078';c.fillStyle=lc;c.fillRect(mxp+6,q(lvl),14,my0+mh-q(lvl));
-      c.strokeStyle='rgba(255,255,255,.4)';c.lineWidth=1;[0,-6,-12,-18,-24,-30,-40].forEach(function(db){c.beginPath();c.moveTo(mxp-4,q(db));c.lineTo(mxp,q(db));c.stroke()});
-      c.fillStyle='#fff';c.font='600 11px Spline Sans Mono,monospace';c.textAlign='center';c.fillText(Math.round(lvl)+' dB',mxp+13,my0-12);c.fillText(lvl>HI?'ZU LAUT':lvl>=LO?'GUT':'LEISE',mxp+13,my0+mh+18);c.textAlign='left';
+      var c=G.c,W=G.W,H=G.H;c.clearRect(0,0,W,H);
+      c.fillStyle='#0f1013';c.fillRect(0,0,W,H);
+      var im=IMG[mis.img];
+      if(im&&im.complete&&im.naturalWidth){var sy=im.naturalHeight*box.sy;c.drawImage(im,0,sy,im.naturalWidth,im.naturalHeight-sy,box.x,box.y,box.w,box.h)}
+      c.fillStyle='rgba(0,0,0,.18)';c.fillRect(0,FT,W,H-FT);
+      // Bereich außerhalb des Bildes
+      var gr=c.createLinearGradient(0,0,0,FT);gr.addColorStop(0,'#0b0c0e');gr.addColorStop(1,'#1a1b1f');c.fillStyle=gr;c.fillRect(0,0,W,FT);
+      c.strokeStyle='#ff2d20';c.setLineDash([10,7]);c.lineWidth=2;c.beginPath();c.moveTo(0,FT);c.lineTo(W,FT);c.stroke();c.setLineDash([]);
+      c.font='600 11px Spline Sans Mono,monospace';c.fillStyle='#ff6b62';c.textAlign='left';c.fillText('BILDKANTE',12,FT-8);
+      c.fillStyle='#7d828b';c.textAlign='right';c.fillText('außerhalb des Bildes',W-70,FT-8);c.textAlign='left';
+      // Wer spricht?
+      var h=head(act),pr=W*.045+Math.sin(t*9)*2;
+      c.strokeStyle=shout>0?'#ff2d20':'rgba(255,255,255,.9)';c.lineWidth=2;
+      for(var k=0;k<2;k++){c.globalAlpha=.9-k*.45;c.beginPath();c.arc(h.x,h.y,pr+k*9+((t*30)%9),0,Math.PI*2);c.stroke()}c.globalAlpha=1;
+      var tag=shout>0?'LAUT!':'spricht';c.font='700 12px Spline Sans Mono,monospace';var tw=c.measureText(tag).width+12;
+      c.fillStyle=shout>0?'#ff2d20':'#fff';rr(c,h.x-tw/2,h.y+pr+8,tw,18,4);c.fill();c.fillStyle=shout>0?'#fff':'#000';c.textAlign='center';c.fillText(tag,h.x,h.y+pr+21);c.textAlign='left';
+      // Aufnahmekegel des Richtmikrofons
+      var L=Math.max(W,H),dx=Math.sin(th),dy=Math.cos(th),on=offAx<=15;
+      c.fillStyle=on?'rgba(61,220,132,.16)':'rgba(255,255,255,.08)';c.beginPath();c.moveTo(mx,my);
+      c.lineTo(mx+Math.sin(th-15*RAD)*L,my+Math.cos(th-15*RAD)*L);c.lineTo(mx+Math.sin(th+15*RAD)*L,my+Math.cos(th+15*RAD)*L);c.closePath();c.fill();
+      c.strokeStyle=on?'rgba(61,220,132,.7)':'rgba(255,255,255,.35)';c.lineWidth=1;c.setLineDash([4,5]);c.beginPath();c.moveTo(mx,my);c.lineTo(mx+dx*L,my+dy*L);c.stroke();c.setLineDash([]);
+      // Angel
+      var ox=W+30,oy=-30,hx=mx-dx*W*.045,hy=my-dy*W*.045;
+      c.strokeStyle='#08090a';c.lineWidth=7;c.beginPath();c.moveTo(ox,oy);c.lineTo(hx,hy);c.stroke();
+      c.strokeStyle='#4d5058';c.lineWidth=3;c.beginPath();c.moveTo(ox,oy);c.lineTo(hx,hy);c.stroke();
+      c.strokeStyle='#1b1c1f';c.lineWidth=4;c.beginPath();c.moveTo(hx,hy);c.lineTo(mx-dx*W*.02,my-dy*W*.02);c.stroke();
+      // Windkorb (Fell) in Blickrichtung
+      var len=W*.07,wid=W*.022;c.save();c.translate(mx,my);c.rotate(-th);
+      var fg=c.createLinearGradient(-wid,0,wid,0);fg.addColorStop(0,'#5d6068');fg.addColorStop(.5,my>FT-6?'#ff6b62':'#b9bcc3');fg.addColorStop(1,'#5d6068');
+      c.fillStyle=fg;c.beginPath();c.ellipse(0,len*.15,wid,len*.62,0,0,Math.PI*2);c.fill();
+      c.strokeStyle='rgba(225,228,233,.55)';c.lineWidth=1.2;
+      for(var f=0;f<54;f++){var a=f/54*Math.PI*2,ex=Math.cos(a)*wid,ey=len*.15+Math.sin(a)*len*.62,o=3+((f*7)%5);c.beginPath();c.moveTo(ex,ey);c.lineTo(ex+Math.cos(a+.6)*o,ey+Math.sin(a+.6)*o);c.stroke()}
+      c.fillStyle='rgba(0,0,0,.35)';c.beginPath();c.ellipse(0,len*.72,wid*.55,wid*.35,0,0,Math.PI*2);c.fill();
       c.restore();
+      if(offAx>35&&G.running){c.font='700 12px Spline Sans Mono,monospace';c.fillStyle='#ffd60a';c.textAlign='center';c.fillText('↻ Mikro zur Person drehen',mx,Math.max(18,my-len*.7-8));c.textAlign='left'}
+      if(flash>0){c.fillStyle='rgba(255,45,32,'+(flash*.3)+')';c.fillRect(0,FT,W,H-FT)}
+      // Pegelanzeige
+      var mw=Math.max(34,W*.045),mxp=W-mw-10,my0=FT+26,mh=H-my0-30,q=function(db){return my0+mh*(1-(Math.max(-40,Math.min(0,db))+40)/40)};
+      c.fillStyle='rgba(8,9,11,.82)';rr(c,mxp-6,my0-22,mw+12,mh+44,6);c.fill();
+      c.fillStyle='rgba(61,220,132,.22)';c.fillRect(mxp,q(HI),mw,q(LO)-q(HI));
+      var lc=lvl>HI?'#ff2d20':lvl>=LO?'#3ddc84':'#7d828b';c.fillStyle=lc;c.fillRect(mxp+mw*.25,q(lvl),mw*.5,my0+mh-q(lvl));
+      c.fillStyle='#fff';c.font='600 11px Spline Sans Mono,monospace';c.textAlign='center';c.fillText(Math.round(lvl)+' dB',mxp+mw/2,my0-8);c.fillText(lvl>HI?'LAUT':lvl>=LO?'GUT':'LEISE',mxp+mw/2,my0+mh+16);c.textAlign='left';
     }
     function pickMis(){var k;do{k=Math.floor(Math.random()*MIS.length)}while(k===lastMis);lastMis=k;return MIS[k]}
     return {
-      idle:function(G){setScale(G);setup(MIS[0]);mx=ppl[0].x+10;my=130;lvl=level();draw(G)},
-      start:function(G){setScale(G);setup(pickMis());G.say(mis.n+' · '+mis.k,'Drehtag')},
+      init:function(G){
+        MIS.forEach(load);
+        var rb=G.el.querySelectorAll('[data-rot]');
+        [].forEach.call(rb,function(b){
+          var d=+b.getAttribute('data-rot');
+          b.addEventListener('pointerdown',function(e){e.stopPropagation();e.preventDefault();rot=d});
+          ['pointerup','pointerleave','pointercancel'].forEach(function(ev){b.addEventListener(ev,function(){if(rot===d)rot=0})});
+        });
+        G.stage.addEventListener('wheel',function(e){if(!G.running)return;e.preventDefault();th=clamp(th+(e.deltaY>0?1:-1)*6*RAD,-85*RAD,85*RAD)},{passive:false});
+        var im=IMG[MIS[0].img];im.addEventListener('load',function(){if(!G.running&&TON.idle)TON.idle(G)});
+      },
+      idle:function(G){setup(G,MIS[0]);var h=head(0);mx=h.x+G.W*.06;my=FT*.6;th=Math.atan2(h.x-mx,h.y-my);lvl=-12;level(G);draw(G)},
+      start:function(G){setup(G,pickMis());G.say(mis.n+' · '+mis.k,'Drehtag')},
       frame:function(G,dt){
         t+=dt;
-        // Sprecherwechsel und laute Stellen
-        nextSw-=dt;if(nextSw<=0){var n;do{n=Math.floor(Math.random()*ppl.length)}while(n===act&&ppl.length>1);act=n;nextSw=rnd(mis.sw[0],mis.sw[1]);shout=Math.random()<mis.shout?rnd(.7,1.3):0}
+        nextSw-=dt;if(nextSw<=0){var n;do{n=Math.floor(Math.random()*mis.h.length)}while(n===act&&mis.h.length>1);act=n;nextSw=rnd(mis.sw[0],mis.sw[1]);shout=Math.random()<mis.shout?rnd(.8,1.4):0}
         if(shout>0)shout-=dt;
-        if(mis.walk)ppl.forEach(function(p,i){p.x=p.x0+Math.sin(t*.55+p.ph)*WW*.12});
-        // Angel folgt mit etwas Trägheit (sie ist lang und schwer)
-        tx=clamp(tx+kx*dt*420,30,WW-80);ty=clamp(ty+ky*dt*300,30,300);
+        th=clamp(th+rot*dt*110*RAD,-85*RAD,85*RAD);
         mx+=(tx-mx)*Math.min(1,dt*7);my+=(ty-my)*Math.min(1,dt*7);
         wind+=((mis.wind?rnd(-1,1)*7*mis.wind:0)-wind)*.12;
-        var target=level()+wind+rnd(-1,1);lvl+=(target-lvl)*Math.min(1,dt*10);
+        var target=level(G)+wind+rnd(-.8,.8);lvl+=(target-lvl)*Math.min(1,dt*10);
         var inF=my>FT-6;if(inF){inFrame+=dt;flash=1}else flash=Math.max(0,flash-dt*3);
         if(!inF&&lvl>=LO&&lvl<=HI)good+=dt;
         draw(G);
         var s=Math.max(0,T-t);G.hud('Guter Ton '+Math.round(good/Math.max(t,.01)*100)+' % · 0:'+(s<10?'0':'')+Math.ceil(s)+(inF?' · ANGEL IM BILD!':''));
-        if(t>=T){var p=Math.round(good/T*100);G.finish('<b>'+p+' % sauberer Ton</b>'+(inFrame>1?'Die Angel war '+inFrame.toFixed(1)+' s im Bild. ':'')+(p>=75?'Der Cutter dankt Ihnen. Kein Nachvertonen nötig.':p>=50?'Brauchbar, ein paar Stellen müssen wir reparieren.':'Das wird eine lange Nacht im Tonstudio. Nochmal?'),p)}
+        if(t>=T){rot=0;var p=Math.round(good/T*100);G.finish('<b>'+p+' % sauberer Ton</b>'+(inFrame>1?'Die Angel war '+inFrame.toFixed(1)+' s im Bild. ':'')+(p>=75?'Der Cutter dankt Ihnen. Kein Nachvertonen nötig.':p>=50?'Brauchbar, ein paar Stellen müssen wir reparieren.':'Das wird eine lange Nacht im Tonstudio. Nochmal?'),p)}
       },
-      move:function(G,e){var r=G.stage.getBoundingClientRect();tx=clamp((e.clientX-r.left)/S,30,WW-80);ty=clamp((e.clientY-r.top)/S,30,300)},
+      move:function(G,e){if(e.target&&e.target.closest&&e.target.closest('[data-rot]'))return;var r=G.stage.getBoundingClientRect();tx=clamp(e.clientX-r.left,20,G.W-70);ty=clamp(e.clientY-r.top,16,G.H*.62)},
       down:function(G,e){TON.move(G,e)},
-      key:function(G,e,on){var v=on?1:0;if(e.key==='ArrowLeft'){kx=-v;return}if(e.key==='ArrowRight'){kx=v;return}if(e.key==='ArrowUp'){ky=-v;return}if(e.key==='ArrowDown'){ky=v;return}return false},
-      stop:function(){kx=ky=0},
-      better:function(a,b){return a>b},fmt:function(v){return v+' % sauberer Ton'}
+      key:function(G,e,on){var v=on?1:0,k=e.key.toLowerCase();if(k==='q'||k==='a'){rot=on?-1:0;return}if(k==='e'||k==='d'){rot=on?1:0;return}if(e.key==='ArrowLeft'){tx=clamp(tx-24,20,G.W-70);return}if(e.key==='ArrowRight'){tx=clamp(tx+24,20,G.W-70);return}if(e.key==='ArrowUp'){ty=clamp(ty-18,16,G.H*.62);return}if(e.key==='ArrowDown'){ty=clamp(ty+18,16,G.H*.62);return}return false},
+      stop:function(){rot=0},
+      ver:'2',better:function(a,b){return a>b},fmt:function(v){return v+' % sauberer Ton'}
     };
   })();
 
