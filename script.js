@@ -98,7 +98,7 @@
       var r=Math.round(ev*10)/10;
       mm.textContent='M.M '+(r>0?'+':r<0?'−':'±')+Math.abs(r).toFixed(1);
       mm.className='vf-mm'+(Math.abs(r)>=2?' over':Math.abs(r)>=1?' warn':'');
-      var a=C.audio.i;aud.style.setProperty('--g',a<=-40?0:Math.min(2.2,Math.pow(10,a/20)).toFixed(3));
+      var a=C.audio.i,g=a<=-40?0:Math.min(2.2,Math.pow(10,a/20));aud.style.setProperty('--g',g.toFixed(3));aud.style.setProperty('--gs',(g>0?100/g:100).toFixed(1)+'%');
       ['nd','iris','iso','shutter'].forEach(function(k){var b=$('[data-v="'+k+'"]',vf);if(b)b.textContent=C[k].f(val(k))});
       if(cur){pv.textContent=C[cur].f(val(cur));rng.value=C[cur].i}
     };
