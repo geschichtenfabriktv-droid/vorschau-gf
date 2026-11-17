@@ -217,9 +217,11 @@ kbd{font-family:var(--mono);font-size:.82em;border:1px solid currentColor;border
 .av-tl{position:relative;min-width:860px;padding-bottom:10px;--lab:136px}
 .av-ruler,.av-tr{display:flex}
 .av-lab{width:var(--lab);flex:none;display:flex;align-items:center;gap:8px;padding:0 10px;background:var(--av2);border-right:1px solid #000;font-family:var(--mono);font-size:.74rem;position:relative}
-.av-lab b{background:#4a4e57;color:#fff;border-radius:3px;padding:1px 6px;font-weight:500}
+.av-tsel{font-family:var(--mono);font-size:.74rem;font-weight:600;min-width:34px;padding:3px 0;border-radius:3px;background:#5868d8;color:#fff;transition:background .2s,color .2s,box-shadow .2s;box-shadow:inset 0 -2px 0 rgba(0,0,0,.25)}
+.av-a1 .av-tsel,.av-a2 .av-tsel{background:#2f9e6b}
+.av-tsel[aria-pressed=false]{background:#2b2d33;color:#7d828b;box-shadow:inset 0 0 0 1px #3a3d44}
+.av-tsel:hover{filter:brightness(1.15)}
 .av-lab small{color:var(--avm);font-size:.7rem}
-.av-lock{position:absolute;right:8px;width:7px;height:7px;border:1.5px solid #6c717b;border-radius:1px}
 .av-ruler{height:30px;border-bottom:1px solid #000}
 .av-ruler .av-lab{color:var(--avm)}
 .av-rul{position:relative;flex:1;margin-right:14px;background:repeating-linear-gradient(to right,#5b6069 0 1px,transparent 1px calc(100%/30)) bottom/100% 8px no-repeat,repeating-linear-gradient(to right,#8b9099 0 1px,transparent 1px calc(100%/6)) bottom/100% 14px no-repeat}
@@ -241,7 +243,10 @@ kbd{font-family:var(--mono);font-size:.82em;border:1px solid currentColor;border
 .av-ph i{position:absolute;top:0;bottom:0;left:calc(var(--p,0)*100%);width:2px;margin-left:-1px;background:#3c9cff;box-shadow:0 0 8px rgba(60,156,255,.7)}
 .av-ph i::before{content:"";position:absolute;top:0;left:-6px;border:7px solid transparent;border-top:9px solid #3c9cff}
 .av-rul,.av-lane{cursor:text}
-.av-tip{padding:9px 14px;font-size:.78rem;color:var(--avm);background:var(--av2);border-top:1px solid #000}
+.av-tip{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:9px 14px;font-size:.78rem;color:var(--avm);background:var(--av2);border-top:1px solid #000}
+.av-tip b{color:var(--avt);font-weight:600}
+.av-reset{flex:none;font-family:var(--mono);font-size:.72rem;color:var(--avt);border:1px solid #4a4e57;border-radius:4px;padding:4px 10px}
+.av-reset:hover{background:#3a3d44}
 .av-tip kbd{color:var(--avt)}
 
 /* ---------- Produktionen: Ablaufliste ---------- */
@@ -577,3 +582,17 @@ kbd{font-family:var(--mono);font-size:.82em;border:1px solid currentColor;border
   .av-side{grid-template-columns:repeat(3,auto)}
 }
 @media (prefers-reduced-motion:reduce){.foot-ph{display:none}}
+
+/* Timeline: saubere Schnitte, Verschieben, Spuren aus */
+.av-clip{top:3px;bottom:3px;border:0;border-radius:2px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16),inset -1px 0 0 rgba(0,0,0,.75);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;cursor:grab}
+.av-clip.on{box-shadow:inset 0 0 0 2px #fff;filter:brightness(1.12)}
+.av-clip.drag{z-index:6;cursor:grabbing;filter:brightness(1.2);box-shadow:inset 0 0 0 2px #ffd60a,0 10px 24px rgba(0,0,0,.6);transition:none!important}
+.av-clip.bad{box-shadow:inset 0 0 0 2px var(--rec),0 10px 24px rgba(0,0,0,.6);filter:saturate(.4)}
+.av-clip[data-tc]::after{content:attr(data-tc);position:absolute;right:4px;top:3px;z-index:2;font-family:var(--mono);font-size:.62rem;background:#000;color:#ffd60a;padding:0 4px;border-radius:2px}
+.avid.dragging .av-lane{background:#25272c}
+.avid.dragging .av-ph{opacity:.3}
+.av-lane{background:#1f2125;background-image:repeating-linear-gradient(to right,rgba(255,255,255,.035) 0 1px,transparent 1px calc(100%/30))}
+.av-tr.off .av-lane{background:repeating-linear-gradient(135deg,#1b1c1f 0 6px,#222327 6px 12px)}
+.av-tr.off .av-clip{opacity:.3;filter:grayscale(1)}
+.av-tr.off .av-lab small{opacity:.5}
+@media (max-width:700px){.av-tip{flex-direction:column;align-items:flex-start;gap:8px}}

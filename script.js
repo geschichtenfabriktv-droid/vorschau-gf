@@ -177,25 +177,34 @@
   // ---------- Avid-Timeline ----------
   var av=$('.avid');
   if(av){
-    var clips=$$('.av-clip',av), data=$$('.av-data p',av), ph=$('.av-ph',av), tlw=$('.av-tlw',av), tl=$('.av-tl',av), scrn=$('.av-scr',av);
+    var clips=$$('.av-clip',av), data=$$('.av-data p',av), ph=$('.av-ph',av), tlw=$('.av-tlw',av), tl=$('.av-tl',av), scrn=$('.av-scr',av), lanes=$$('.av-lane',av);
     var tcEl=$('[data-avtc]',av), chip=$('.av-chip',av), title=$('.av-title',av), text=$('.av-text',av), meta=$('.av-meta',av);
     var nEl=$('.av-n',av), inEl=$('.av-in',av), outEl=$('.av-out',av), durEl=$('.av-dur',av);
-    var TOTAL=30*60*25, DUR=28000, pos=0, playing=false, act=-1, seen=false, visible=false, lt=0, userScroll=0;
-    var order=clips.map(function(c,i){return i}).sort(function(a,b){return clips[a].dataset.a-clips[b].dataset.a});
-    var fmt=function(pct){return tcOf(pct/100*TOTAL)}, dur=function(pct){var f=pct/100*TOTAL,s=Math.floor(f/25);return '00:'+p2(Math.floor(s/60))+':'+p2(s%60)+':'+p2(Math.floor(f)%25)};
-    var show=function(k){
-      if(k===act)return; act=k;
+    var TOTAL=30*60*25, DUR=28000, U=100/30, pos=0, playing=false, act=-1, seen=false, visible=false, lt=0, userScroll=0;
+    var A=function(c){return +c.dataset.a}, B=function(c){return +c.dataset.b};
+    var home=clips.map(function(c){return {lane:c.parentNode,a:A(c),b:B(c)}});
+    var order=function(){return clips.map(function(c,i){return i}).sort(function(x,y){return A(clips[x])-A(clips[y])||(clips[x].parentNode.dataset.tr<clips[y].parentNode.dataset.tr?-1:1)})};
+    var isOn=function(c){return !c.parentNode.parentNode.classList.contains('off')};
+    var fmt=function(pct){return tcOf(pct/100*TOTAL)}, dur=function(pct){var f=Math.round(pct/100*TOTAL),s=Math.floor(f/25);return '00:'+p2(Math.floor(s/60))+':'+p2(s%60)+':'+p2(f%25)};
+    var show=function(k,force){
+      if(k===act&&!force)return; act=k;
       clips.forEach(function(c,i){c.classList.toggle('on',i===k)});
       var c=clips[k], p=data[k], s=c.dataset.s;
-      chip.className='av-chip t'+s; chip.textContent=p.dataset.chip;
+      chip.className='av-chip t'+s; chip.textContent=c.parentNode.dataset.tr+' · '+p.dataset.chip.split(' · ')[1];
       title.textContent=p.firstChild.textContent; text.textContent=p.lastChild.textContent; meta.textContent='Teil von: '+p.dataset.svc;
-      nEl.textContent=p2(order.indexOf(k)+1); inEl.textContent=fmt(+c.dataset.a); outEl.textContent=fmt(+c.dataset.b); durEl.textContent=dur(c.dataset.b-c.dataset.a);
+      nEl.textContent=p2(order().indexOf(k)+1); inEl.textContent=fmt(A(c)); outEl.textContent=fmt(B(c)); durEl.textContent=dur(B(c)-A(c));
       scrn.classList.remove('swap'); void scrn.offsetWidth; scrn.classList.add('swap');
     };
+    var empty=function(){
+      if(act===-2)return; act=-2; clips.forEach(function(c){c.classList.remove('on')});
+      chip.className='av-chip'; chip.textContent='Kein Signal'; title.textContent='Spur ausgeschaltet';
+      text.textContent='An dieser Stelle liegt nur Material auf ausgeschalteten Spuren. Schalten Sie die Spur links wieder ein.'; meta.textContent='';
+      inEl.textContent=outEl.textContent='--:--:--:--'; durEl.textContent='--:--:--:--';
+    };
     var pick=function(){
-      var best=-1,ba=-1;
-      clips.forEach(function(c,i){var a=+c.dataset.a,b=+c.dataset.b;if(pos*100>=a&&pos*100<b&&a>ba){ba=a;best=i}});
-      if(best>=0)show(best);
+      var best=-1,ba=-1,any=false;
+      clips.forEach(function(c,i){var a=A(c),b=B(c);if(pos*100>=a&&pos*100<b){any=true;if(isOn(c)&&a>ba){ba=a;best=i}}});
+      if(best>=0)show(best); else if(any||(act>=0&&!isOn(clips[act])))empty();
     };
     var draw=function(){
       ph.style.setProperty('--p',pos.toFixed(5)); tcEl.textContent=tcOf(pos*TOTAL);
@@ -210,27 +219,79 @@
       if(pos>=1)pos=0;
       pick(); draw(); requestAnimationFrame(tick);
     };
-    var play=function(on){
-      if(on===playing)return; playing=on; av.classList.toggle('playing',on);
-      $('.av-play',av).setAttribute('aria-label',on?'Pause':'Abspielen');
-      if(on){lt=0;requestAnimationFrame(tick)}
+    var play=function(o){
+      if(o===playing)return; playing=o; av.classList.toggle('playing',o);
+      $('.av-play',av).setAttribute('aria-label',o?'Pause':'Abspielen');
+      if(o){lt=0;requestAnimationFrame(tick)}
     };
-    var jump=function(k){pos=+clips[k].dataset.a/100+.0005;show(k);draw()};
-    clips.forEach(function(c,i){c.addEventListener('click',function(e){e.stopPropagation();play(false);jump(i)})});
+    var jump=function(k){pos=A(clips[k])/100+.0005;show(k,true);draw()};
+    clips.forEach(function(c,i){c.addEventListener('click',function(e){e.stopPropagation();if(c._moved){c._moved=false;return}play(false);jump(i)})});
     $('[data-av="play"]',av).addEventListener('click',function(){play(!playing)});
-    var step=function(dir){var i=order.indexOf(act);i=(i+dir+order.length)%order.length;play(false);jump(order[i])};
+    var step=function(dir){var o=order().filter(function(i){return isOn(clips[i])});if(!o.length)return;var i=o.indexOf(act);i=i<0?0:(i+dir+o.length)%o.length;play(false);jump(o[i])};
     $('[data-av="prev"]',av).addEventListener('click',function(){step(-1)});
     $('[data-av="next"]',av).addEventListener('click',function(){step(1)});
-    // Scrubben auf Lineal und Spuren
+
+    // Spuren ein- und ausschalten (wie die Spur-Schalter im Schnittprogramm)
+    $$('.av-tsel',av).forEach(function(b){b.addEventListener('click',function(e){
+      e.stopPropagation();var tr=b.closest('.av-tr'),off=!tr.classList.contains('off');
+      tr.classList.toggle('off',off);b.setAttribute('aria-pressed',off?'false':'true');
+      if(act>=0&&!isOn(clips[act]))act=-1; pick(); if(act===-1)pick();
+    })});
+
+    // Clips verschieben: lange drücken, dann ziehen. Bild bleibt auf V-Spuren, Ton auf A-Spuren.
+    var drag=null, pend=null;
+    var laneAt=function(y,kind){var best=null;lanes.forEach(function(l){if(l.dataset.kind!==kind)return;var r=l.getBoundingClientRect();if(y>=r.top-6&&y<=r.bottom+6)best=l});return best};
+    var free=function(lane,a,b,self){return !$$('.av-clip',lane).some(function(o){return o!==self&&a<B(o)-.001&&b>A(o)+.001})};
+    var place=function(c,lane,a,b){if(c.parentNode!==lane)lane.appendChild(c);c.dataset.a=a.toFixed(4);c.dataset.b=b.toFixed(4);c.style.left=a+'%';c.style.width=(b-a)+'%'};
+    var startDrag=function(c,x){
+      var r=c.parentNode.getBoundingClientRect();
+      drag={c:c,lane0:c.parentNode,a0:A(c),b0:B(c),w:B(c)-A(c),off:(x-r.left)/r.width*100-A(c),ok:true};
+      play(false);c.classList.add('drag');av.classList.add('dragging');
+      try{navigator.vibrate&&navigator.vibrate(12)}catch(e){}
+    };
+    var moveDrag=function(x,y){
+      var c=drag.c, lane=laneAt(y,c.parentNode.dataset.kind)||c.parentNode, r=lane.getBoundingClientRect();
+      var a=(x-r.left)/r.width*100-drag.off;
+      a=Math.round(a/U)*U; a=Math.max(0,Math.min(100-drag.w,a));
+      var b=a+drag.w; drag.ok=free(lane,a,b,c);
+      place(c,lane,a,b); c.classList.toggle('bad',!drag.ok); c.setAttribute('data-tc',fmt(a).slice(3,8));
+    };
+    var endDrag=function(){
+      var c=drag.c; if(!drag.ok)place(c,drag.lane0,drag.a0,drag.a0+drag.w);
+      c.classList.remove('drag','bad');c.removeAttribute('data-tc');av.classList.remove('dragging');c._moved=true;
+      var k=clips.indexOf(c); drag=null; act=-1; show(k,true); pos=A(c)/100+.0005; draw();
+      setTimeout(function(){c._moved=false},400);
+    };
+    clips.forEach(function(c){
+      c.addEventListener('contextmenu',function(e){e.preventDefault()});
+      c.addEventListener('pointerdown',function(e){
+        if(e.button>0)return;
+        pend={c:c,x:e.clientX,y:e.clientY,t:setTimeout(function(){if(pend&&pend.c===c){startDrag(c,pend.x);pend=null}},320)};
+      });
+    });
+    addEventListener('pointermove',function(e){
+      if(pend&&(Math.abs(e.clientX-pend.x)>8||Math.abs(e.clientY-pend.y)>8)){clearTimeout(pend.t);pend=null}
+      if(pend){pend.x=e.clientX;pend.y=e.clientY}
+      if(drag){e.preventDefault();moveDrag(e.clientX,e.clientY)}
+    },{passive:false});
+    ['pointerup','pointercancel'].forEach(function(t){addEventListener(t,function(){if(pend){clearTimeout(pend.t);pend=null}if(drag)endDrag()})});
+    tlw.addEventListener('touchmove',function(e){if(drag)e.preventDefault()},{passive:false});
+    var rs=$('.av-reset',av);
+    if(rs)rs.addEventListener('click',function(){
+      clips.forEach(function(c,i){place(c,home[i].lane,home[i].a,home[i].b)});
+      $$('.av-tr',av).forEach(function(t){t.classList.remove('off')});$$('.av-tsel',av).forEach(function(b){b.setAttribute('aria-pressed','true')});
+      play(false);pos=0;act=-1;show(0,true);draw();
+    });
+
+    // Scrubben auf Lineal und freien Spurflächen
     var scrub=function(e){
       var lane=$('.av-rul',av).getBoundingClientRect(), x=(e.touches?e.touches[0].clientX:e.clientX);
       pos=Math.min(.9999,Math.max(0,(x-lane.left)/lane.width)); pick(); draw();
     };
-    var dragging=false;
-    $$('.av-rul,.av-lane',av).forEach(function(el){el.addEventListener('pointerdown',function(e){if(e.target.closest('.av-clip'))return;dragging=true;play(false);scrub(e)})});
-    addEventListener('pointermove',function(e){if(dragging)scrub(e)});
-    addEventListener('pointerup',function(){dragging=false});
-    tlw.addEventListener('scroll',function(){if(!playing)return},{passive:true});
+    var scrubbing=false;
+    $$('.av-rul,.av-lane',av).forEach(function(el){el.addEventListener('pointerdown',function(e){if(e.target.closest('.av-clip'))return;scrubbing=true;play(false);scrub(e)})});
+    addEventListener('pointermove',function(e){if(scrubbing)scrub(e)});
+    addEventListener('pointerup',function(){scrubbing=false});
     tlw.addEventListener('touchstart',function(){userScroll=Date.now()},{passive:true});
     tlw.addEventListener('wheel',function(){userScroll=Date.now()},{passive:true});
     // J K L wie im Schnittprogramm
@@ -240,7 +301,7 @@
       if(k==='l')play(true); else if(k==='k')play(false); else if(k==='j')step(-1);
     });
     show(0); draw();
-    inView(av,function(v){visible=v;if(v&&!seen){seen=true;av.classList.add('in');if(!R)setTimeout(function(){if(visible)play(true)},1200)}else if(!v&&playing)play(false)},.3);
+    inView(av,function(v){visible=v;if(v&&!seen){seen=true;av.classList.add('in');if(!R)setTimeout(function(){if(visible&&!drag)play(true)},1200)}else if(!v&&playing)play(false)},.3);
   }
 
   // ---------- Produktionen: Filter, "Alle zeigen", Vorschau ----------
