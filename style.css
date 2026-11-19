@@ -620,3 +620,34 @@ html.lb-on{overflow:hidden}
 .av-tr.off .av-clip{opacity:.3;filter:grayscale(1)}
 .av-tr.off .av-lab small{opacity:.5}
 @media (max-width:700px){.av-tip{flex-direction:column;align-items:flex-start;gap:8px}}
+
+/* ---------- Startseite: Hinweis auf die Drehpause ---------- */
+.tease{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:clamp(20px,4vw,56px);align-items:center;background:var(--ink);color:#fff;border-radius:14px;padding:clamp(22px,3.6vw,48px);text-decoration:none;overflow:hidden;position:relative}
+.tease-k{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:#ffd60a}
+.tease h2{color:#fff;font-size:clamp(1.8rem,3.6vw,3.2rem);margin:14px 0 12px}
+.tease-t>p:not(.tease-k){color:#c9ccd2;max-width:30em;font-size:1.05rem}
+.tease-b{display:inline-flex;align-items:center;gap:10px;margin-top:22px;background:#fff;color:#000;border-radius:999px;padding:13px 20px;font-weight:700;transition:background .25s,color .25s}
+.tease-b .arr{transition:transform .3s var(--ease)}
+.tease-g{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tease-g li{position:relative;border-radius:8px;overflow:hidden;aspect-ratio:16/10;background:#222}
+.tease-g img{width:100%;height:100%;object-fit:cover;opacity:.85;transition:transform .9s var(--ease),opacity .4s}
+.tease-g b{position:absolute;left:10px;bottom:9px;font-size:.86rem;background:rgba(0,0,0,.66);padding:3px 9px;border-radius:4px}
+@media (hover:hover){.tease:hover .tease-b{background:var(--rec);color:#fff}.tease:hover .tease-b .arr{transform:translateX(4px)}.tease:hover .tease-g img{transform:scale(1.05);opacity:1}}
+@media (max-width:900px){.tease{grid-template-columns:1fr}}
+
+/* ---------- Eigene Seite: Drehpause ---------- */
+.gpage{padding:16px var(--pad) 0;max-width:1520px;margin:0 auto}
+.gpage-h{margin:clamp(14px,3vw,40px) 0 clamp(30px,5vw,64px)}
+.gpage-h h1{font-weight:700;font-stretch:86%;font-size:clamp(2.6rem,7vw,6rem);line-height:.95;letter-spacing:-.045em}
+.gpage-h p{max-width:38em;margin-top:14px;font-size:1.1rem;color:#33373d}
+.glist{display:grid;gap:clamp(56px,7vw,110px)}
+.glist .game{width:auto;display:grid;grid-template-columns:minmax(0,1.7fr) minmax(260px,1fr);gap:clamp(18px,3.4vw,52px);align-items:center;scroll-margin-top:90px}
+.glist .game:nth-child(even) .g-col{order:2}
+.g-col{min-width:0}
+.g-n{font-family:var(--mono);font-size:.8rem;color:var(--mut);margin-bottom:6px}
+.g-info h2{font-weight:700;font-stretch:86%;font-size:clamp(1.7rem,3vw,2.6rem);letter-spacing:-.03em;line-height:1.02;margin-bottom:10px}
+.g-aim{display:flex;align-items:center;gap:12px;margin-top:12px;background:var(--pan);border-radius:999px;padding:10px 18px;font-family:var(--mono);font-size:.8rem}
+.g-aim span{white-space:nowrap;color:var(--mut)}
+.g-aim b{font-size:1.1rem;font-weight:500}
+.g-aim input{flex:1;min-width:0;accent-color:var(--ink);height:32px}
+@media (max-width:900px){.glist .game{grid-template-columns:1fr}.glist .game:nth-child(even) .g-col{order:0}.g-aim span{display:none}}

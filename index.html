@@ -29,7 +29,7 @@
     <a href="#profil">Profil</a>
     <a href="#leistungen">Leistungen</a>
     <a href="#produktionen">Produktionen</a>
-    <a href="#drehpause">Drehpause</a>
+    <a href="drehpause.html">Drehpause</a>
     <a class="nav-cta" href="#kontakt">Kontakt</a>
   </nav>
   <p class="clock" aria-hidden="true"><span>LIVE</span><b data-clock>00:00:00</b></p>
@@ -40,7 +40,7 @@
   <a href="#profil" style="--i:0"><small>01</small>Profil</a>
   <a href="#leistungen" style="--i:1"><small>02</small>Leistungen</a>
   <a href="#produktionen" style="--i:2"><small>03</small>Produktionen</a>
-  <a href="#drehpause" style="--i:3"><small>04</small>Drehpause</a>
+  <a href="drehpause.html" style="--i:3"><small>04</small>Drehpause</a>
   <a href="#kontakt" style="--i:4"><small>05</small>Kontakt</a>
 </nav>
 <main id="inhalt">
@@ -431,81 +431,15 @@
 </section>
 
 <section class="sec play-sec" id="drehpause">
-  <div class="sec-h row-h">
-    <div>
-      <h2 data-r>Drehpause</h2>
-      <p data-r style="--i:1">Vier Minispiele aus unserem Produktionsalltag. Wischen oder blättern, dann auf Start.</p>
+  <a class="tease" href="drehpause.html" data-r>
+    <div class="tease-t">
+      <p class="tease-k"><i class="rec" aria-hidden="true"></i>Drehpause</p>
+      <h2>Vier Minispiele aus unserem Produktionsalltag</h2>
+      <p>Tonangel, Klappe, Schärfe ziehen und Live-Regie. Jede Runde eine neue Mission.</p>
+      <span class="tease-b">Zu den Spielen <svg class="arr" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></span>
     </div>
-    <div class="rail-nav"><button type="button" data-rail="-1" aria-label="Vorheriges Spiel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2"/></svg></button><button type="button" data-rail="1" aria-label="Nächstes Spiel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2"/></svg></button></div>
-  </div>
-  <div class="rail" tabindex="-1">
-    <article class="game" id="spiel-ton" data-game="ton" aria-labelledby="gt-ton">
-      <div class="g-stage">
-        <canvas class="g-cv" width="800" height="500" aria-label="Spielfeld: Szene mit Personen, Tonangel und Pegelanzeige" role="img"></canvas>
-        <div class="g-rot"><button type="button" data-rot="-1" aria-label="Mikro nach links drehen">↺</button><button type="button" data-rot="1" aria-label="Mikro nach rechts drehen">↻</button></div>
-        <div class="g-ov">
-          <p class="g-kick">Spiel 1 von 4</p>
-          <p class="g-msg">Mikro bewegen: Maus oder Finger. Windkorb drehen: Mausrad, Tasten Q/E oder die Dreh-Knöpfe. Grün ist guter Ton, unter der roten Linie ist die Angel im Bild.</p>
-          <button type="button" class="g-start"><svg class="pl" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg> Start</button>
-        </div>
-        <p class="g-hud" aria-live="polite"></p>
-      </div>
-      <div class="g-info">
-        <h3 id="gt-ton">Tonangel</h3>
-        <p>Echte Drehszenen, Sie sind der Tonmann: Mikro über die Person, die gerade spricht, Windkorb auf sie ausrichten, Pegel im grünen Bereich halten. Und die Angel bleibt über der Bildkante.</p>
-        <p class="g-best">Bestwert: <b>–</b></p>
-      </div>
-    </article><article class="game" id="spiel-klappe" data-game="klappe" aria-labelledby="gt-klappe">
-      <div class="g-stage">
-        <canvas class="g-cv" width="800" height="500" aria-label="Spielfeld: Tonspur mit Klappen-Ausschlag" role="img"></canvas>
-        
-        <div class="g-ov">
-          <p class="g-kick">Spiel 2 von 4</p>
-          <p class="g-msg">Die Marke läuft über die Tonspur. Drücken Sie genau auf dem Klappenschlag (Leertaste, Klick oder Tippen).</p>
-          <button type="button" class="g-start"><svg class="pl" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg> Start</button>
-        </div>
-        <p class="g-hud" aria-live="polite"></p>
-      </div>
-      <div class="g-info">
-        <h3 id="gt-klappe">Klappe! Ton anlegen</h3>
-        <p>Im Schnitt muss der Klappenschlag auf das Bild. Wechselnde Drehtage mit Störgeräuschen und leisen Klappen. Fünf Takes, jeder Frame zählt.</p>
-        <p class="g-best">Bestwert: <b>–</b></p>
-      </div>
-    </article><article class="game" id="spiel-fokus" data-game="fokus" aria-labelledby="gt-fokus">
-      <div class="g-stage">
-        <canvas class="g-cv" width="800" height="500" aria-label="Spielfeld: Bild mit Schärferad" role="img"></canvas>
-        <img class="g-photo" src="img/aab2b6cd48.webp" alt="" width="2090" height="1176" loading="lazy"><div class="g-ring" aria-hidden="true"></div>
-        <div class="g-ov">
-          <p class="g-kick">Spiel 3 von 4</p>
-          <p class="g-msg">Maus, Finger oder Pfeiltasten bewegen das Schärferad. Halten Sie die Marke auf der gelben Entfernung der Person.</p>
-          <button type="button" class="g-start"><svg class="pl" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg> Start</button>
-        </div>
-        <p class="g-hud" aria-live="polite"></p>
-      </div>
-      <div class="g-info">
-        <h3 id="gt-fokus">Schärfe ziehen</h3>
-        <p>Jede Runde ein anderes Motiv und eine andere Bewegung. Sie sind der Focus Puller: 20 Sekunden, wie viel davon ist scharf?</p>
-        <p class="g-best">Bestwert: <b>–</b></p>
-      </div>
-    </article><article class="game" id="spiel-regie" data-game="regie" aria-labelledby="gt-regie">
-      <div class="g-stage">
-        <canvas class="g-cv" width="800" height="500" aria-label="Spielfeld: Bildmischer mit vier Kameras" role="img"></canvas>
-        <div class="g-cams"><button type="button" class="g-cam" data-cam="1" tabindex="-1"><img src="img/e10302302c-m.webp" alt="" width="1280" height="720" loading="lazy"><b>CAM 1</b></button><button type="button" class="g-cam" data-cam="2" tabindex="-1"><img src="img/75d48f68ac-m.webp" alt="" width="1280" height="720" loading="lazy"><b>CAM 2</b></button><button type="button" class="g-cam" data-cam="3" tabindex="-1"><img src="img/d5132a003d-m.webp" alt="" width="1280" height="720" loading="lazy"><b>CAM 3</b></button><button type="button" class="g-cam" data-cam="4" tabindex="-1"><img src="img/461696c92a-m.webp" alt="" width="1280" height="720" loading="lazy"><b>CAM 4</b></button></div>
-        <div class="g-ov">
-          <p class="g-kick">Spiel 4 von 4</p>
-          <p class="g-msg">Gelb heißt Achtung, grün heißt Schnitt: Erst beim zweiten Kommando die Kamera antippen (oder Taste 1 bis 4).</p>
-          <button type="button" class="g-start"><svg class="pl" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg> Start</button>
-        </div>
-        <p class="g-hud" aria-live="polite"></p>
-      </div>
-      <div class="g-info">
-        <h3 id="gt-regie">Live-Regie</h3>
-        <p>Wie im Ü-Wagen: Die Regie sagt die Kamera an („Achtung 3 …“) und gibt sie frei („… und 3!“). Erst dann schneiden. Jede Sendung mit anderen Bildern.</p>
-        <p class="g-best">Bestwert: <b>–</b></p>
-      </div>
-    </article>
-  </div>
-  <div class="rail-dots" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i></div>
+    <ul class="tease-g" aria-hidden="true"><li><img src="img/84ed29bb99-s.webp" alt="" width="720" height="405" loading="lazy"><b>Tonangel</b></li><li><img src="img/5e0637582e-s.webp" alt="" width="720" height="405" loading="lazy"><b>Klappe! Ton anlegen</b></li><li><img src="img/aab2b6cd48-s.webp" alt="" width="720" height="405" loading="lazy"><b>Schärfe ziehen</b></li><li><img src="img/e10302302c-s.webp" alt="" width="720" height="405" loading="lazy"><b>Live-Regie</b></li></ul>
+  </a>
 </section>
 </main>
 
@@ -516,7 +450,7 @@
   </div>
   <div class="foot-tl" aria-hidden="true"><span class="c1"></span><span class="c2"></span><span class="c3"></span><b class="foot-ph"></b></div>
   <div class="foot-meta">
-    <p>© 2026 GESCHICHTENFABRIK.TV · Lübscher Mühlenberg 17a, 23730 Neustadt in Holstein</p>
+    <p>© 2026 GESCHICHTENFABRIK.TV</p>
     <p><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></p>
   </div>
 </footer>

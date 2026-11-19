@@ -457,7 +457,7 @@
   //    Pegel im grünen Bereich halten und die Angel nicht ins Bild hängen.
   // =====================================================================
   var TON=(function(){
-    var T=25, t, mx, my, tx, ty, th, rot=0, act, nextSw, lvl, good, inFrame, shout, mis, lastMis=-1, wind, flash, offAx, FT, box, IMG={};
+    var aim=null, T=25, t, mx, my, tx, ty, th, rot=0, act, nextSw, lvl, good, inFrame, shout, mis, lastMis=-1, wind, flash, offAx, FT, box, IMG={};
     var LO=-18, HI=-6, RAD=Math.PI/180;
     // Köpfe in Prozent des Bildes (x, y), gemessen an den Originalbildern
     var MIS=[
@@ -538,15 +538,18 @@
           ['pointerup','pointerleave','pointercancel'].forEach(function(ev){b.addEventListener(ev,function(){if(rot===d)rot=0})});
         });
         G.stage.addEventListener('wheel',function(e){if(!G.running)return;e.preventDefault();th=clamp(th+(e.deltaY>0?1:-1)*6*RAD,-85*RAD,85*RAD)},{passive:false});
+        aim=G.el.querySelector('.g-aim input');
+        if(aim){aim.addEventListener('input',function(){th=clamp(+aim.value*RAD,-85*RAD,85*RAD);if(!G.running){level(G);draw(G)}});['pointerdown','touchstart'].forEach(function(ev){aim.addEventListener(ev,function(e){e.stopPropagation()},{passive:true})})}
         var im=IMG[MIS[0].img];im.addEventListener('load',function(){if(!G.running&&TON.idle)TON.idle(G)});
       },
       idle:function(G){setup(G,MIS[0]);var h=head(0);mx=h.x+G.W*.06;my=FT*.6;th=Math.atan2(h.x-mx,h.y-my);lvl=-12;level(G);draw(G)},
-      start:function(G){setup(G,pickMis());G.say(mis.n+' · '+mis.k,'Drehtag')},
+      start:function(G){setup(G,pickMis());if(aim)aim.value=0;G.say(mis.n+' · '+mis.k,'Drehtag')},
       frame:function(G,dt){
         t+=dt;
         nextSw-=dt;if(nextSw<=0){var n;do{n=Math.floor(Math.random()*mis.h.length)}while(n===act&&mis.h.length>1);act=n;nextSw=rnd(mis.sw[0],mis.sw[1]);shout=Math.random()<mis.shout?rnd(.8,1.4):0}
         if(shout>0)shout-=dt;
         th=clamp(th+rot*dt*110*RAD,-85*RAD,85*RAD);
+        if(aim&&d.activeElement!==aim)aim.value=Math.round(th/RAD);
         mx+=(tx-mx)*Math.min(1,dt*7);my+=(ty-my)*Math.min(1,dt*7);
         wind+=((mis.wind?rnd(-1,1)*7*mis.wind:0)-wind)*.12;
         var target=level(G)+wind+rnd(-.8,.8);lvl+=(target-lvl)*Math.min(1,dt*10);
